@@ -1,0 +1,9 @@
+PROMPT disable
+SUPERSEDE enable
+PROGRESS disable
+SUMMARY disable
+OPEN 192.168.10.151/USER=anonymous/PASSWORD=anonymous
+CD sixel
+MODE TEXT
+MGET S*.DAT
+QUIT

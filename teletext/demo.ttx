@@ -1,0 +1,48 @@
+# Bundled demonstration page.  Render it with:  ./ttx demo
+# It lives inside the package so that building feed pages into pages/
+# cannot overwrite or remove it.
+!title TELETEXT DEMO
+!page 100
+{cyan}P100 {white}TELETEXT DEMONSTRATION{yellow}   VT340
+{gred}███████████████████████████████████████
+{yellow}{double}TELETEXT SIXEL
+
+{white}Level 1 pages: 40 columns, 25 rows,
+{white}eight colours, mosaic block graphics.
+{blue}{newbg}{white} PAPER {yellow}INK {red}RED {green}GREEN {cyan}CYAN {bgblack}
+{white}Attributes: {flash}FLASH{steady} {conceal}HIDDEN{white} shown
+{white}Mosaics, 2x3 blocks per character:
+!graphic row=11 col=5 colour=cyan
+####################
+#..................#
+#..##..##..##..##..#
+#..................#
+#..##############..#
+#..................#
+####################
+....############....
+...##############...
+!endgraphic
+!graphic row=11 col=24 colour=yellow sep=1
+####################
+#..................#
+#..##..##..##..##..#
+#..................#
+#..##############..#
+#..................#
+####################
+....############....
+...##############...
+!endgraphic
+!row 15
+{cyan}contiguous{white} and {yellow}separated{white} mosaics
+!row 17
+{cyan}Sent as sixel this page is about 9K;
+{cyan}sent as characters in the downloaded
+{cyan}soft font it is under 2K, which is
+{cyan}two seconds at 9600 baud.
+{green}Characters are rounded the way a real
+{green}teletext chip rounds them, so diagonals
+{green}are not a staircase.
+!row 24
+{red}100 Index {green}101 News {yellow}300 Sport {cyan}Ceefax

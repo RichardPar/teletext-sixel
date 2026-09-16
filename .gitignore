@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+pages/feeds/
+*.six
+*.png
+.publish/
+.publish.log
+scripts/deploy.conf
+pages/
+
