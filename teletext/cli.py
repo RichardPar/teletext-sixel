@@ -683,6 +683,17 @@ def cmd_publish(args):
                 written.append((str(number), out, os.path.getsize(out)))
                 listed.append((str(number), pg.title))
 
+    # in text mode the pages are characters in a downloaded font, so the
+    # font travels with them: a viewer loads it once a session and then
+    # every page is a couple of kilobytes instead of ten
+    if getattr(args, 'emit', 'sixel') == 'text' and args.font:
+        data = decdld.font_download(cell=_cell(args),
+                                    charset=getattr(args, 'charset', 'english'))
+        out = os.path.join(args.out, '%sFNT.DAT' % args.prefix)
+        with open(out, 'w', encoding='latin-1', newline='\n') as fh:
+            fh.write(decdld.wrap(data, args.record) if args.wrap else data)
+        written.append(('FNT', out, os.path.getsize(out)))
+
     # the same list as text, for a viewer to page through without
     # knowing the numbers in advance
     if args.page_list and listed:
@@ -931,6 +942,10 @@ def build_parser():
                          'when the list is long)')
     sp.add_argument('--no-index', dest='index', action='store_const',
                     const=0, help='do not generate a directory page')
+    sp.add_argument('--no-font', dest='font', action='store_false',
+                    default=True,
+                    help='with --emit text, do not write PFNT.DAT, the soft '
+                         'font the pages are drawn in')
     sp.add_argument('--no-page-list', dest='page_list', action='store_false',
                     default=True,
                     help='do not write PIDX.DAT, the list of page numbers '

@@ -26,6 +26,10 @@ HERE=$(cd "$(dirname "$0")/.." && pwd)
 REMOTE=${TTX_REMOTE:-/var/ftp/public/sixel}
 PAGES=${TTX_PAGES:-$HERE/pages/feeds}
 PREFIX=${TTX_PREFIX:-S}
+# sixel draws each page as a picture; text sends it as characters in the
+# soft font published beside the pages, which is four to fifteen times
+# less to shift down a 9600 baud line
+EMIT=${TTX_EMIT:-sixel}
 STAGE=$HERE/.publish
 DRY=
 [ "$1" = "--dry-run" ] && DRY=1
@@ -40,7 +44,8 @@ fi
 # picture.  --depth low is a VT340's 16 colour registers.
 rm -rf "$STAGE"
 "$HERE/ttx" publish "$PAGES" --out "$STAGE" --prefix "$PREFIX" \
-    --scale 1.5 --depth low --clear --record 132 > /dev/null
+    --scale 1.5 --depth low --clear --record 132 --emit "$EMIT" \
+    > /dev/null
 
 COUNT=$(ls "$STAGE"/"$PREFIX"*.DAT | wc -l)
 if [ "$COUNT" -eq 0 ]; then

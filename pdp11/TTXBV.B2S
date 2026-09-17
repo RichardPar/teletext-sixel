@@ -21,6 +21,7 @@
 60	OPEN "TI:" FOR INPUT AS FILE #3%
 70	OPEN "TI:" FOR OUTPUT AS FILE #4%, RECORDSIZE 512%
 80	GOSUB 7000
+85	GOSUB 7500
 90	K% = 1%
 95	MISS% = 0%
 100	! Main loop: show the page, then act on what is typed
@@ -105,6 +106,17 @@
 7110	GOTO 7030
 7120	CLOSE #1%
 7130	RETURN
+7490	!
+7500	! Load the soft font, once, if the pages are published as text.
+7510	! SFNT.DAT holds the DECDLD sequence the pages are drawn in; it is
+7520	! sent unbroken, so the terminal sees one control string.
+7530	OPEN DIR$ + "SFNT.DAT" FOR INPUT AS FILE #1%, RECORDSIZE 512%, ACCESS READ, ALLOW MODIFY
+7540	LINPUT #1%, L$
+7550	PRINT #4%, L$;
+7560	GOTO 7540
+7570	CLOSE #1%
+7580	PRINT #4%
+7590	RETURN
 7990	!
 8000	! R: leave a marker for TTXVW.CMD to download the pages and
 8010	! start the viewer again
@@ -121,6 +133,10 @@
 19020	IF ERL = 7030% AND ERR = 11% THEN RESUME 7120
 19030	! No page list: carry on with an empty one
 19040	IF ERL = 7020% THEN RESUME 7130
+19042	! End of the soft font
+19044	IF ERL = 7540% AND ERR = 11% THEN RESUME 7570
+19046	! No soft font: the pages must be sixel, which needs none
+19048	IF ERL = 7530% THEN RESUME 7590
 19050	! A listed page whose file is missing: show SNF.DAT instead
 19060	IF ERL = 1050% AND F$ = DIR$ + "SNF.DAT" THEN RESUME 1100
 19065	IF ERL = 1050% THEN F$ = DIR$ + "SNF.DAT"

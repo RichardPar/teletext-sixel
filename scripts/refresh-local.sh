@@ -5,12 +5,15 @@
 set -e
 
 HERE=$(cd "$(dirname "$0")/.." && pwd)
-SERVICES=${TTX_SERVICES:-"news sport weather slashdot"}
+SERVICES=${TTX_SERVICES:-"news science sport weather slashdot"}
+# photographs: sixel is the better picture, mosaic is teletext blocks the
+# page itself holds, which is what TTX_EMIT=text needs to keep pictures
+IMAGES=${TTX_IMAGES:-sixel}
 LOG1=$(mktemp)
 LOG2=$(mktemp)
 trap 'rm -f "$LOG1" "$LOG2"' EXIT
 
-"$HERE/ttx" feeds build $SERVICES --limit 6 \
+"$HERE/ttx" feeds build $SERVICES --limit 6 --images "$IMAGES" \
     --out "$HERE/pages/feeds" --refresh-now 2> "$LOG1"
 cat "$LOG1" >&2
 
@@ -18,7 +21,7 @@ cat "$LOG1" >&2
 # be built separately with its own base to avoid overwriting weather's
 # pages.
 "$HERE/ttx" feeds build register --limit 6 --base 430 \
-    --out "$HERE/pages/feeds" --refresh-now 2> "$LOG2"
+    --images "$IMAGES" --out "$HERE/pages/feeds" --refresh-now 2> "$LOG2"
 cat "$LOG2" >&2
 
 # --front only lists the services built in the same invocation, so with

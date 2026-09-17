@@ -217,7 +217,22 @@ instead of an image:
 `--cell WxH` sets the cell size the font is built for (10x20 for a
 VT340). `--text-rows` sets how many of the 25 rows are sent. The default
 is 24, which leaves out the navigation row. Text mode can't show
-pictures, so use sixel for pages that have them.
+photographs, so build pages with `--images mosaic` to get teletext block
+graphics the page itself holds, or use sixel for those pages.
+
+`ttx publish --emit text` writes the whole service this way, with the
+font beside the pages as `<prefix>FNT.DAT` (`--no-font` leaves it out).
+A viewer sends the font once a session and each page after that is a
+couple of kilobytes:
+
+| | sixel | text, photos as mosaics |
+|---|---|---|
+| news story with a photograph | 24281 bytes, 25 s | 1563 bytes, 1.6 s |
+| weather map | 10205 bytes, 10.6 s | 1611 bytes, 1.7 s |
+| whole 35-page service | 490 KB | 58 KB, plus the font once |
+
+Set `TTX_EMIT=text` and `TTX_IMAGES=mosaic` for the deploy and refresh
+scripts to publish the service that way.
 
 The font data is checked by decoding it again
 (`tests/decdld_decode.py`), but it hasn't been tried on a real VT340
@@ -349,7 +364,7 @@ RSX side is described in [`pdp11/README.md`](pdp11/README.md).
 scripts/refresh.sh     build pages/feeds from the feeds, then run deploy.sh
 scripts/deploy.sh      render pages/feeds to .publish/S<n>.DAT and upload them
 PDP-11 TTXFET          download S*.DAT at five past each hour
-PDP-11 TTXVW           show the pages
+PDP-11 TTXVW           show the pages (a BASIC-PLUS-2 program)
 ```
 
 ### File locations
@@ -360,7 +375,7 @@ PDP-11 TTXVW           show the pages
 | `.publish/` | `.DAT` files from the last deploy |
 | `.publish.log` | output from cron |
 | `scripts/deploy.conf` | the FTP server's SSH login (local only, not in the repository) |
-| FTP server: `/var/ftp/public/sixel/` | live pages, uploaded over SSH |
+| FTP server: `/var/ftp/public/sixel/` | live pages, the page list and the soft font, uploaded over SSH |
 | anonymous FTP: `sixel/` | the same directory, as the PDP-11 sees it |
 | PDP-11: `DB0:[203,1]` | downloaded pages and the viewer |
 
@@ -378,7 +393,9 @@ scripts/refresh.sh            # rebuild from the feeds, then deploy
 ```
 
 `deploy.sh` renders every page in `pages/feeds` with `ttx publish`
-(`--scale 1.5 --depth low --clear --record 132`) and uploads the files
+(`--scale 1.5 --depth low --clear --record 132 --emit "$TTX_EMIT"`),
+alongside `SIDX.DAT`, the page list a viewer reads instead of knowing
+the numbers, and uploads the files
 to `.incoming/` inside the FTP directory. Then it deletes any live
 `S*.DAT` that isn't in the new set and moves the new files into place.
 Pages for stories that have left the feed are removed, and the PDP-11
@@ -397,8 +414,10 @@ The environment wins.
 | `TTX_HOST` | none, required | `user@host` for SSH to the FTP server |
 | `TTX_REMOTE` | `/var/ftp/public/sixel` | FTP directory |
 | `TTX_PAGES` | `pages/feeds` | pages to publish |
+| `TTX_EMIT` | `sixel` | `text` publishes pages as characters in the soft font, 4-15x smaller |
+| `TTX_IMAGES` | `sixel` | `mosaic` draws photos as teletext blocks, which text mode can show |
 | `TTX_PREFIX` | `S` | file name prefix |
-| `TTX_SERVICES` | `news sport weather slashdot` | feeds built by `refresh.sh` |
+| `TTX_SERVICES` | `news science sport weather slashdot` | feeds built by `refresh.sh` |
 
 ```sh
 # scripts/deploy.conf
@@ -460,6 +479,7 @@ services built in the same call.
 | 410–418 | Slashdot |
 | `SNF.DAT` | "page not found" |
 | `SIDX.DAT` | page list, one `number title` line per page, for viewers |
+| `SFNT.DAT` | the soft font, when the service is published as text |
 
 Over 43 pages, with a VT340's 16 colour registers:
 
@@ -500,7 +520,9 @@ scripts/front_page.py     stitch the front page together when register
                           and weather are built separately
 scripts/ceefax-service.sh page carousel on a serial line
 scripts/logo.py           rebuild docs/logo.svg
-pdp11/                    RSX-11M-PLUS viewer, fetch job and FTP script
+pdp11/TTXBV.B2S           the viewer, in BASIC-PLUS-2
+pdp11/TTXVW.CMD           starts the viewer and downloads the pages
+pdp11/                    the older Indirect viewer, fetch job and FTP script
 docs/                     logo
 pages/                    pages (pages/feeds is generated)
 tests/                    unit tests, sixel and DECDLD decoders

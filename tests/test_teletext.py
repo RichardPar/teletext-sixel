@@ -1313,6 +1313,34 @@ class PublishTest(unittest.TestCase):
         out, files = self._publish(['100', '101', '302'])
         self.assertIn('P199.DAT', files)          # the generated index
 
+    def test_text_mode_publishes_the_font_beside_the_pages(self):
+        out, files = self._publish(['100'], '--emit', 'text')
+        self.assertIn('PFNT.DAT', files)
+        with open(os.path.join(out, 'PFNT.DAT'), encoding='latin-1') as fh:
+            text = fh.read()
+        self.assertEqual(text.replace('\n', ''),
+                         decdld.font_download(cell=(10, 20)))
+        for line in text.splitlines():
+            self.assertLessEqual(len(line), 200)
+
+    def test_the_font_can_be_left_out(self):
+        out, files = self._publish(['100'], '--emit', 'text', '--no-font')
+        self.assertNotIn('PFNT.DAT', files)
+
+    def test_wrapping_the_font_only_adds_line_breaks(self):
+        """A terminal obeys CR LF inside a device control string and
+        carries on loading glyphs, so breaks between whole glyph
+        definitions cost nothing."""
+        data = decdld.font_download()
+        for width in (80, 132, 480):
+            wrapped = decdld.wrap(data, width)
+            self.assertEqual(wrapped.replace('\n', ''), data)
+            for line in wrapped.splitlines():
+                self.assertLessEqual(len(line), width)
+                self.assertFalse(line.endswith('\x1b'))
+                if decdld.DCS in line:
+                    self.assertIn('{', line)   # never split the introducer
+
     def test_a_page_list_names_every_page_in_order(self):
         out, files = self._publish(['302', '100', '101'])
         self.assertIn('PIDX.DAT', files)

@@ -125,6 +125,47 @@ def font_download(cell=(10, 20), charset='english'):
             soft_font(cell, charset, graphics=True, font_number=2))
 
 
+def wrap(data, width=132):
+    """Break a font download into lines a record-oriented filesystem holds.
+
+    A DECDLD sequence is one string of several thousand characters, and
+    RSX records are much shorter.  Breaks fall between whole glyph
+    definitions, never inside one, and never inside the introducer or
+    the terminator; the CR LF that a file's records gain moves the
+    cursor but leaves the glyphs being loaded alone.
+    """
+    lines = []
+    line = ''
+    i = 0
+    while i < len(data):
+        if data.startswith(DCS, i):
+            # introducer, parameters, and the two-character Dscs
+            end = data.find('{', i)
+            end = len(data) if end < 0 else min(end + 3, len(data))
+            token = data[i:end]
+        elif data.startswith(ST, i):
+            end = i + len(ST)
+            token = data[i:end]
+        else:
+            semi = data.find(';', i)
+            stop = data.find(ST, i)
+            if semi >= 0 and (stop < 0 or semi < stop):
+                end = semi + 1          # one glyph, with its separator
+            elif stop >= 0:
+                end = stop
+            else:
+                end = len(data)
+            token = data[i:end]
+        if line and len(line) + len(token) > width:
+            lines.append(line)
+            line = ''
+        line += token
+        i = end
+    if line:
+        lines.append(line)
+    return '\n'.join(lines) + '\n'
+
+
 # ---------------------------------------------------------------------
 # a page as characters
 # ---------------------------------------------------------------------
