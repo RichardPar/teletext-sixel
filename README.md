@@ -161,9 +161,10 @@ Pages are drawn directly at the terminal's pixel size, with no scaling.
 All three sizes fit on a VT340's 800×480 screen. Each character is built
 from its 5×9 shape. At 9×14 the columns that hold vertical stems are two
 pixels wide, so stems all come out the same weight. Where the cell is
-large enough, diagonal steps are filled in the same way the SAA5050
-teletext chip does it. At 12×18 the output is the chip's own
-double-size character.
+large enough, diagonals are cut along the outline used by the
+[Bedstead](https://bjh21.me.uk/bedstead/) font, so bigger cells get
+smooth 45° edges rather than bigger steps. At 12×18 the output is the
+SAA5050 teletext chip's own double-size character.
 
 ```
 --scale N            1, 1.5, 2 …          --sx / --sy for separate axes
@@ -512,8 +513,9 @@ Conceal, background colour and hold take effect in the cell itself.
 Held mosaics repeat through control-code cells, and a double-height row
 hides the row below it.
 
-The character shapes are drawn in the style of the SAA5050 rather than
-copied from its ROM. The fractions `½ ¼ ¾` are approximations.
+The character shapes are the SAA5050's, taken from Ben Harris and Simon
+Tatham's [Bedstead](https://bjh21.me.uk/bedstead/), which was checked
+against a real chip and is dedicated to the public domain (CC0).
 
 The tests decode the sixel output and compare it pixel by pixel with
 the original bitmap.
