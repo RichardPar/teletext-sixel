@@ -833,6 +833,29 @@ class FeedTest(unittest.TestCase):
         self.assertEqual(base, 410)
         self.assertIn('slashdot', url)
 
+    def test_sky_mirrors_the_bbc_page_numbers(self):
+        """Sky News sits on the BBC's numbering with a 400 offset, so
+        501 is Sky's news index as 101 is the BBC's."""
+        for bbc, sky in (('news', 'skynews'), ('uk', 'skyuk'),
+                         ('world', 'skyworld'), ('politics', 'skypolitics'),
+                         ('business', 'skybusiness'), ('tech', 'skytech'),
+                         ('entertainment', 'skyentertainment'),
+                         ('sport', 'skysport')):
+            _t, url, base = sources.resolve(sky)
+            self.assertEqual(base, sources.resolve(bbc)[2] + 400, sky)
+            self.assertIn('skynews.com', url)
+
+    def test_feed_page_numbers_do_not_collide(self):
+        used = {}
+        for name, (_title, _url, base) in sources.FEEDS.items():
+            # weather and register share 400: refresh-local.sh moves
+            # register with --base, which is why front_page.py exists
+            if name in ('register',):
+                continue
+            self.assertNotIn(base, used, '%s and %s both start at %d'
+                             % (name, used.get(base), base))
+            used[base] = name
+
     def test_bad_xml_is_a_clean_error(self):
         with self.assertRaises(ValueError):
             rss.parse(b'')

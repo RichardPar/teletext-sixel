@@ -266,17 +266,24 @@ the feed's base page number, then one page per story. `--front` adds a
 front page at 100. `carousel` builds the pages, sends them in rotation
 and rebuilds every `--refresh` seconds.
 
-| feed | page | feed | page |
-|---|---|---|---|
-| news | 101 | sport | 300 |
-| uk | 110 | football | 310 |
-| world | 120 | cricket | 320 |
-| politics | 130 | weather | 400 |
-| business | 140 | register | 400 |
-| tech | 150 | slashdot | 410 |
-| science | 160 | lwn | 420 |
-| health | 170 | | |
-| entertainment | 180 | | |
+| BBC | page | Sky News | page | other | page |
+|---|---|---|---|---|---|
+| news | 101 | skynews | 501 | weather | 400 |
+| uk | 110 | skyuk | 510 | register | 400 |
+| world | 120 | skyworld | 520 | slashdot | 410 |
+| politics | 130 | skypolitics | 530 | lwn | 420 |
+| business | 140 | skybusiness | 540 | | |
+| tech | 150 | skytech | 550 | | |
+| science | 160 | | | | |
+| health | 170 | | | | |
+| entertainment | 180 | skyentertainment | 580 | | |
+| sport | 300 | skysport | 700 | | |
+| football | 310 | | | | |
+| cricket | 320 | | | | |
+
+The Sky News pages are the BBC page plus 400, so 101 news becomes 501
+and 300 sport becomes 700, in the categories the two share. Sky has no
+science or health feed.
 
 A story page uses the text of the linked article when the feed only has
 a short summary. `--no-full-text` turns that off, `--body-paragraphs N`
@@ -417,7 +424,7 @@ The environment wins.
 | `TTX_EMIT` | `sixel` | `text` publishes pages as characters in the soft font, 4-15x smaller |
 | `TTX_IMAGES` | `sixel` | `mosaic` draws photos as teletext blocks, which text mode can show |
 | `TTX_PREFIX` | `S` | file name prefix |
-| `TTX_SERVICES` | `news science sport weather slashdot` | feeds built by `refresh.sh` |
+| `TTX_SERVICES` | `news science sport weather slashdot skynews skytech` | feeds built by `refresh.sh` |
 
 ```sh
 # scripts/deploy.conf

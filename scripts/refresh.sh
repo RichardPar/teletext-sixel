@@ -6,7 +6,7 @@ set -e
 
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 [ -f "$HERE/scripts/deploy.conf" ] && . "$HERE/scripts/deploy.conf"
-SERVICES=${TTX_SERVICES:-"news science sport weather slashdot"}
+SERVICES=${TTX_SERVICES:-"news science sport weather slashdot skynews skytech"}
 # photographs: sixel is the better picture, mosaic is teletext blocks the
 # page itself holds, which is what TTX_EMIT=text needs to keep pictures
 IMAGES=${TTX_IMAGES:-sixel}

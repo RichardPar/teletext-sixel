@@ -14,6 +14,17 @@ FEEDS = {
     'sport':       ('BBC SPORT',      'http://feeds.bbci.co.uk/sport/rss.xml',                 300),
     'football':    ('BBC FOOTBALL',   'http://feeds.bbci.co.uk/sport/football/rss.xml',        310),
     'cricket':     ('BBC CRICKET',    'http://feeds.bbci.co.uk/sport/cricket/rss.xml',         320),
+    # Sky News, in the categories it shares with the BBC.  The page
+    # numbers are the BBC page plus 400: 101 news becomes 501, sport 700.
+    # Sky has no science or health feed.
+    'skynews':     ('SKY NEWS',       'https://feeds.skynews.com/feeds/rss/home.xml',          501),
+    'skyuk':       ('SKY UK',         'https://feeds.skynews.com/feeds/rss/uk.xml',            510),
+    'skyworld':    ('SKY WORLD',      'https://feeds.skynews.com/feeds/rss/world.xml',         520),
+    'skypolitics': ('SKY POLITICS',   'https://feeds.skynews.com/feeds/rss/politics.xml',      530),
+    'skybusiness': ('SKY BUSINESS',   'https://feeds.skynews.com/feeds/rss/business.xml',      540),
+    'skytech':     ('SKY TECHNOLOGY', 'https://feeds.skynews.com/feeds/rss/technology.xml',    550),
+    'skyentertainment': ('SKY ARTS',  'https://feeds.skynews.com/feeds/rss/entertainment.xml', 580),
+    'skysport':    ('SKY SPORT',      'https://feeds.skynews.com/feeds/rss/sports.xml',        700),
     # weather is not an RSS news feed: it fans out to the BBC's per-city
     # forecast feeds and builds its own pages (see weather.py)
     'weather':     ('UK WEATHER',     'https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/', 400),
