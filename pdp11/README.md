@@ -5,18 +5,62 @@ with a VT340 console. Tested on a PiDP-11.
 
 | file | purpose |
 |---|---|
-| `TTXSIX.CMD` | the viewer (an Indirect command file) |
+| `TTXBV.B2S` | the viewer, in BASIC-PLUS-2 |
+| `TTXVW.CMD` | starts `TTXBV` and downloads the pages when asked |
+| `TTXSIX.CMD` | the older viewer, an Indirect command file |
 | `TTXSIX.FTP` | FTP script that downloads the pages |
 | `TTXFET.CMD` | downloads the pages, then schedules the next run |
 | `TTXFET.BAT` | batch job that runs `TTXFET.CMD` |
-| `LOGIN.CMD` | starts the viewer at login and logs out when you quit |
+| `LOGIN.CMD` | starts `TTXVW` at login and logs out when you quit |
 
 All of them go in `DB0:[203,1]`.
 
-The viewer is written as an Indirect command file because the system
-has no BASIC, FORTRAN, C or Pascal compiler installed.
-
 ## Using the viewer
+
+```
+> @DB0:[203,1]TTXVW
+```
+
+The viewer reads `SIDX.DAT`, the page list that `ttx publish` writes
+alongside the pages, and shows the first page in it. After each page,
+type:
+
+| input | action |
+|---|---|
+| Return or `N` | next page in the list |
+| a page number | show that page |
+| `P` | previous page in the list |
+| `I` | first page in the list |
+| `R` | download all pages again, then start from the first page |
+| `Q` or Ctrl-Z | quit |
+
+Nothing in the viewer knows the page numbers: it steps through
+whatever the list holds, wrapping round at the end. A page number
+that isn't in the list shows `SNF.DAT`, and Return then carries on
+with the next page after that number. If there is no page list yet,
+`TTXVW` downloads the pages first.
+
+BASIC can't run MCR commands, so `TTXVW.CMD` sets the terminal up
+(`SET /BUF=TI:255`) and runs the FTP download. When you type `R`, the
+viewer leaves a `TTXREF.TMP` marker and exits; `TTXVW` downloads the
+pages, deletes the marker and starts the viewer again.
+
+### Building the viewer
+
+BASIC-PLUS-2 comes from RPM (`@LB:[RPM]RPM FETCH BP2`, then
+`RPM INSTALL BP2`). With `TTXBV.B2S` in `DB0:[203,1]`:
+
+```
+> BP2
+BASIC2
+OLD TTXBV
+COMPILE
+BUILD
+EXIT
+> TKB @TTXBV
+```
+
+## The Indirect viewer
 
 ```
 > @DB0:[203,1]TTXSIX

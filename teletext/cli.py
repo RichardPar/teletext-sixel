@@ -617,6 +617,23 @@ def _index_pages(entries, start, taken, charset='english'):
     return pages
 
 
+def page_list(entries, record=480):
+    """Every published page as 'number title' lines, in page order.
+
+    Numbers are unique and sorted numerically, and each title is plain
+    printable text cut to fit the record length.
+    """
+    seen = {}
+    for number, title in entries:
+        seen.setdefault(str(number), title)
+    lines = []
+    for number in sorted(seen, key=lambda n: (len(n), n)):
+        title = ''.join(c for c in str(seen[number] or '')
+                        if ' ' <= c <= '~').strip()
+        lines.append(('%s %s' % (number, title)).rstrip()[:record])
+    return '\n'.join(lines) + '\n'
+
+
 def cmd_publish(args):
     """Write pages as P<number>.DAT files a PDP-11 can fetch and TYPE.
 
@@ -656,6 +673,7 @@ def cmd_publish(args):
         entries.append((number, pg.title or os.path.basename(path)))
         written.append((number, out, os.path.getsize(out)))
 
+    listed = list(entries)
     if args.index and entries:
         taken = set(n for n, _, _ in written)
         entries.sort(key=lambda e: (len(e[0]), e[0]))
@@ -663,6 +681,15 @@ def cmd_publish(args):
             out = emit(str(number), pg)
             if out:
                 written.append((str(number), out, os.path.getsize(out)))
+                listed.append((str(number), pg.title))
+
+    # the same list as text, for a viewer to page through without
+    # knowing the numbers in advance
+    if args.page_list and listed:
+        out = os.path.join(args.out, '%sIDX.DAT' % args.prefix)
+        with open(out, 'w', encoding='latin-1', newline='\n') as fh:
+            fh.write(page_list(listed, args.record))
+        written.append(('IDX', out, os.path.getsize(out)))
 
     # a page for numbers that do not exist, which the viewer falls back to
     if args.not_found:
@@ -904,6 +931,10 @@ def build_parser():
                          'when the list is long)')
     sp.add_argument('--no-index', dest='index', action='store_const',
                     const=0, help='do not generate a directory page')
+    sp.add_argument('--no-page-list', dest='page_list', action='store_false',
+                    default=True,
+                    help='do not write PIDX.DAT, the list of page numbers '
+                         'and titles a viewer pages through')
     _add_render_opts(sp)
     sp.set_defaults(func=cmd_publish)
 

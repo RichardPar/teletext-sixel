@@ -349,7 +349,7 @@ RSX side is described in [`pdp11/README.md`](pdp11/README.md).
 scripts/refresh.sh     build pages/feeds from the feeds, then run deploy.sh
 scripts/deploy.sh      render pages/feeds to .publish/S<n>.DAT and upload them
 PDP-11 TTXFET          download S*.DAT at five past each hour
-PDP-11 TTXSIX          show the pages
+PDP-11 TTXVW           show the pages
 ```
 
 ### File locations
@@ -459,6 +459,7 @@ services built in the same call.
 | 400–408 | weather |
 | 410–418 | Slashdot |
 | `SNF.DAT` | "page not found" |
+| `SIDX.DAT` | page list, one `number title` line per page, for viewers |
 
 Over 43 pages, with a VT340's 16 colour registers:
 

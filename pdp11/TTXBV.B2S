@@ -1,0 +1,131 @@
+1	! TTXBV - teletext page viewer, BASIC-PLUS-2
+2	!
+3	! Shows the sixel pages S<n>.DAT that TTXSIX.FTP downloads into
+4	! DB0:[203,1].  Which pages exist, and their order, come from
+5	! SIDX.DAT, the page list 'ttx publish' writes: one 'number title'
+6	! line per page.  After each page:
+7	!
+8	!   Return, N   next page in the list
+9	!   number      go to that page
+10	!   P           previous page in the list
+11	!   I           first page in the list
+12	!   R           download the pages again (TTXVW.CMD does this)
+13	!   Q or ^Z     quit
+14	!
+15	! Run it with @TTXVW, which sets up the terminal first.
+16	!
+20	ON ERROR GOTO 19000
+30	DIM PGN%(500%)
+40	! PGN%(1..NP%) are the page numbers from SIDX.DAT, in order
+50	DIR$ = "DB0:[203,1]"
+60	OPEN "TI:" FOR INPUT AS FILE #3%
+70	OPEN "TI:" FOR OUTPUT AS FILE #4%, RECORDSIZE 512%
+80	GOSUB 7000
+90	K% = 1%
+95	MISS% = 0%
+100	! Main loop: show the page, then act on what is typed
+110	GOSUB 1000
+120	GOSUB 2000
+130	IF C$ = "Q" THEN GOTO 9000
+140	IF C$ = "" OR C$ = "N" THEN GOSUB 3000
+150	IF C$ = "" OR C$ = "N" THEN GOTO 110
+160	IF C$ = "P" THEN GOSUB 4000
+170	IF C$ = "P" THEN GOTO 110
+180	IF C$ = "I" THEN K% = 1%
+190	IF C$ = "I" THEN MISS% = 0%
+200	IF C$ = "I" THEN GOTO 110
+210	IF C$ = "R" THEN GOTO 8000
+220	GOSUB 6000
+230	IF V% = 0% THEN GOTO 120
+240	GOSUB 5000
+250	GOTO 110
+990	!
+1000	! Show the current page: PGN%(K%), or SNF.DAT if a number was
+1010	! typed that is not in the list, or the list is empty
+1020	F$ = DIR$ + "SNF.DAT"
+1030	IF MISS% = 0% AND NP% > 0% THEN F$ = DIR$ + "S" + NUM1$(PGN%(K%)) + ".DAT"
+1040	IF NP% = 0% THEN PRINT #4%, "No page list (SIDX.DAT) - type R to download the pages"
+1050	OPEN F$ FOR INPUT AS FILE #1%, RECORDSIZE 512%, ACCESS READ, ALLOW MODIFY
+1060	LINPUT #1%, L$
+1070	PRINT #4%, L$
+1080	GOTO 1060
+1090	CLOSE #1%
+1100	RETURN
+1990	!
+2000	! Read a command from the terminal into C$, upper case, no blanks
+2010	LINPUT #3%, C$
+2020	C$ = EDIT$(C$, 2% + 4% + 32%)
+2030	RETURN
+2990	!
+3000	! Next page.  After a miss K% is the page before the number
+3010	! typed, so the next one is still K% + 1.
+3020	MISS% = 0%
+3030	K% = K% + 1%
+3040	IF K% > NP% THEN K% = 1%
+3050	RETURN
+3990	!
+4000	! Previous page.  After a miss K% already is the page before.
+4010	IF MISS% = 0% THEN K% = K% - 1%
+4020	MISS% = 0%
+4030	IF K% < 1% THEN K% = NP%
+4040	RETURN
+4990	!
+5000	! Go to page V%.  If it is not in the list, remember where it
+5010	! would have been, so that N and P carry on from there.
+5020	MISS% = 1%
+5030	K% = 0%
+5040	FOR J% = 1% TO NP%
+5050	IF PGN%(J%) = V% THEN MISS% = 0%
+5060	IF PGN%(J%) = V% THEN K% = J%
+5070	IF PGN%(J%) = V% THEN RETURN
+5080	IF PGN%(J%) < V% THEN K% = J%
+5090	NEXT J%
+5100	RETURN
+5990	!
+6000	! A page number from C$ into V%, or 0 if C$ is not one
+6010	V% = 0%
+6020	IF LEN(C$) < 1% OR LEN(C$) > 4% THEN RETURN
+6030	FOR T% = 1% TO LEN(C$)
+6040	IF INSTR(1%, "0123456789", MID(C$, T%, 1%)) = 0% THEN RETURN
+6050	NEXT T%
+6060	V% = VAL%(C$)
+6070	RETURN
+6990	!
+7000	! Load the page list into PGN%
+7010	NP% = 0%
+7020	OPEN DIR$ + "SIDX.DAT" FOR INPUT AS FILE #1%, RECORDSIZE 512%, ACCESS READ, ALLOW MODIFY
+7030	LINPUT #1%, L$
+7040	C$ = L$
+7050	T% = INSTR(1%, L$, " ")
+7060	IF T% > 0% THEN C$ = MID(L$, 1%, T% - 1%)
+7070	GOSUB 6000
+7080	IF V% = 0% OR NP% >= 500% THEN GOTO 7030
+7090	NP% = NP% + 1%
+7100	PGN%(NP%) = V%
+7110	GOTO 7030
+7120	CLOSE #1%
+7130	RETURN
+7990	!
+8000	! R: leave a marker for TTXVW.CMD to download the pages and
+8010	! start the viewer again
+8020	OPEN DIR$ + "TTXREF.TMP" FOR OUTPUT AS FILE #2%
+8030	PRINT #2%, "REFRESH"
+8040	CLOSE #2%
+8990	!
+9000	CLOSE #3%
+9010	CLOSE #4%
+9020	GOTO 32767
+18990	!
+19000	! End of a page file, or of the page list
+19010	IF ERL = 1060% AND ERR = 11% THEN RESUME 1090
+19020	IF ERL = 7030% AND ERR = 11% THEN RESUME 7120
+19030	! No page list: carry on with an empty one
+19040	IF ERL = 7020% THEN RESUME 7130
+19050	! A listed page whose file is missing: show SNF.DAT instead
+19060	IF ERL = 1050% AND F$ = DIR$ + "SNF.DAT" THEN RESUME 1100
+19065	IF ERL = 1050% THEN F$ = DIR$ + "SNF.DAT"
+19070	IF ERL = 1050% THEN RESUME 1050
+19080	! ^Z at the prompt quits
+19090	IF ERL = 2010% AND ERR = 11% THEN RESUME 9000
+19100	ON ERROR GOTO 0
+32767	END

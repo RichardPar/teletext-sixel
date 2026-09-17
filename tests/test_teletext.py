@@ -1313,6 +1313,24 @@ class PublishTest(unittest.TestCase):
         out, files = self._publish(['100', '101', '302'])
         self.assertIn('P199.DAT', files)          # the generated index
 
+    def test_a_page_list_names_every_page_in_order(self):
+        out, files = self._publish(['302', '100', '101'])
+        self.assertIn('PIDX.DAT', files)
+        with open(os.path.join(out, 'PIDX.DAT'), encoding='latin-1') as fh:
+            lines = fh.read().splitlines()
+        self.assertEqual([l.split()[0] for l in lines],
+                         ['100', '101', '199', '302'])
+        self.assertEqual(lines[0], '100 Page 100')
+
+    def test_the_page_list_can_be_left_out(self):
+        out, files = self._publish(['100'], '--no-page-list')
+        self.assertNotIn('PIDX.DAT', files)
+
+    def test_page_list_titles_are_plain_and_fit(self):
+        text = self.cli.page_list([('1000', 'x'), ('99', 'Caf\xe9\x1b[1m'),
+                                   ('99', 'dup')], record=8)
+        self.assertEqual(text, '99 Caf[1\n1000 x\n')
+
     def test_the_directory_lists_every_page(self):
         entries = [('%d' % n, 'Title %d' % n) for n in range(100, 108)]
         pages = self.cli._index_pages(entries, 199, set())
