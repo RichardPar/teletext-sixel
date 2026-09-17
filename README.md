@@ -420,6 +420,32 @@ Crontab entry:
 0 * * * * /home/richard/Source/teletext-sixel/scripts/refresh.sh >> /home/richard/Source/teletext-sixel/.publish.log 2>&1
 ```
 
+### Deploying locally
+
+If the FTP directory is on the same machine, `deploy.sh`'s SSH round
+trip is unnecessary. `deploy-local.sh` and `refresh-local.sh` do the
+same job by copying files into place directly:
+
+```sh
+scripts/deploy-local.sh             # render, copy into place, remove old pages
+scripts/deploy-local.sh --dry-run   # render, then list the pages that would be removed
+scripts/refresh-local.sh            # rebuild from the feeds, then deploy
+```
+
+Same `TTX_REMOTE` / `TTX_PAGES` / `TTX_PREFIX` variables as above, but
+no `TTX_HOST` and no `deploy.conf` - the copy is local so there's no
+login to configure. This is what actually runs on this box:
+
+```
+0 * * * * /home/richard/teletext-sixel/scripts/refresh-local.sh >> /home/richard/teletext-sixel/.publish.log 2>&1
+```
+
+`refresh-local.sh` builds `register` separately from the other
+services, since it shares its default base page (400) with weather.
+`scripts/front_page.py` then stitches the front page together from
+both builds' summaries, since `ttx feeds build --front` only covers
+services built in the same call.
+
 ### Published pages
 
 | page | contents |
@@ -464,8 +490,12 @@ teletext/cli.py           commands
 teletext/demo.ttx         demo page
 teletext/feeds/           feed download and parsing, article text, page builder,
                           weather pages and map
-scripts/refresh.sh        rebuild and deploy (run from cron)
-scripts/deploy.sh         publish pages to the FTP server
+scripts/refresh.sh        rebuild and deploy over SSH (run from cron)
+scripts/deploy.sh         publish pages to a remote FTP server
+scripts/refresh-local.sh  rebuild and deploy locally (run from cron)
+scripts/deploy-local.sh   publish pages to a local FTP directory
+scripts/front_page.py     stitch the front page together when register
+                          and weather are built separately
 scripts/ceefax-service.sh page carousel on a serial line
 scripts/logo.py           rebuild docs/logo.svg
 pdp11/                    RSX-11M-PLUS viewer, fetch job and FTP script
