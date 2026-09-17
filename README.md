@@ -472,7 +472,7 @@ services built in the same call.
 |---|---|
 | 100 | front page |
 | 101–109 | BBC News index and stories |
-| 160–164 | BBC Science |
+| 160–166 | BBC Science |
 | 199, 200 … | directory of all published pages |
 | 300–306 | BBC Sport |
 | 400–408 | weather |

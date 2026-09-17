@@ -183,10 +183,16 @@ The workstation publishes new pages on the hour
 (`scripts/refresh.sh`). The PDP-11 downloads them at five past, so it
 never fetches while an upload is in progress.
 
-`TTXFET.BAT` runs `TTXFET.CMD`. That downloads the pages, works out the
-next hour from the current time and submits the batch job again for
-`hh:05`. After 23:00 it submits for `00:05:TOMORROW`. The time is read
-from the clock each run, so the schedule doesn't drift.
+`TTXFET.BAT` runs `TTXFET.CMD`. That downloads the pages, purges the
+versions the download replaced, works out the next hour from the current
+time and submits the batch job again for `hh:05`. After 23:00 it submits
+for `00:05:TOMORROW`. The time is read from the clock each run, so the
+schedule doesn't drift.
+
+The hours carry decimal points (`.SETN H 'HH'.`, `.IF H GT 23.`) because
+Indirect reads and writes numbers in octal otherwise: `18` is then a
+syntax error, which leaves nothing scheduled at all, and `17+1` comes
+back as `20`, an hour late.
 
 Start it once:
 
@@ -200,6 +206,15 @@ Check the queue:
 > QUE BATCH:/LI
   [1,1]     TTXFET    ENTRY:1     BLOCKED UNTIL 15-SEP-26 21:15
             1 DB0:[203,1]TTXFET.BAT;1
+```
+
+If the pages stop arriving, look there first: no entry means nothing is
+scheduled, and a wrong time means the hour was miscalculated. Drop the
+bad entry by its number and submit a new one:
+
+```
+> QUE /EN:1/DEL
+> SUB /AF:hh:05=DB0:[203,1]TTXFET.BAT
 ```
 
 ## Installing
